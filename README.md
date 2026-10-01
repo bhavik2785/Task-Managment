@@ -4,7 +4,7 @@ This builds a real Android app (APK) for your MechVac Task website, on GitHub, f
 The app opens your site full screen like any installed app, stays live like the website,
 and receives notifications for tasks, approvals, reminders, announcements and chat **even when it is closed**.
 
-Requirements: your website must open with **https://**, and phones need Google Chrome installed (almost all Android phones have it).
+Requirements: your website must open with **https://**, phones need Android 7 or newer with Google Chrome installed (almost all phones in use today).
 
 ## Step 1: Put this folder on GitHub (one time)
 1. Create a free account at https://github.com and sign in.

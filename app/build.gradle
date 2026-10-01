@@ -16,12 +16,12 @@ def appName = cfg.getProperty('appName', 'MechVac Task').trim()
 
 android {
     namespace 'com.mechvac.twa'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId packageId
-        minSdk 21
-        targetSdk 34
+        minSdk 24
+        targetSdk 36
         versionCode cfg.getProperty('versionCode', '1').trim().toInteger()
         versionName cfg.getProperty('versionName', '1.0').trim()
 
@@ -60,7 +60,8 @@ android {
 }
 
 dependencies {
+    // Exact versions match Google's official TWA generator (Bubblewrap): library 2.6.2, AGP 8.9.1, Gradle 8.11.1, SDK 36
     // Google's Trusted Web Activity helper: runs the website in Chrome as a real app,
     // with Chrome's web push notifications delivered as this app's notifications
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.+'
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
 }
