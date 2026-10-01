@@ -1,47 +1,57 @@
 # MechVac Task: Android app
 
-This builds a real Android app (APK) for your MechVac Task website, on GitHub, for free.
-The app opens your site full screen like any installed app, stays live like the website,
-and receives notifications for tasks, approvals, reminders, announcements and chat **even when it is closed**.
+This app opens your MechVac Task website inside a proper Android app and adds what a website cannot do on free hosting:
 
-Requirements: your website must open with **https://**, phones need Android 7 or newer with Google Chrome installed (almost all phones in use today).
+- **Notifications even when the app is closed**: new tasks, approvals, comments, deadline reminders, announcements and chat.
+- **Almost instant**: the app checks every 30 seconds to 3 minutes (Company settings > Live update speed). A small silent icon stays in the status bar so Android does not stop it. You can hide that icon's category in the phone's notification settings.
+- **Backup check every 15 minutes**, and it starts again by itself after the phone restarts.
+- Works on free hosting (e.g. InfinityFree), because the phone asks the server. The server never needs to send anything out.
+- Photos and files can be attached, and downloads are saved to the phone's Downloads folder.
 
-## Step 1: Put this folder on GitHub (one time)
-1. Create a free account at https://github.com and sign in.
-2. Click **+** (top right), then **New repository**. Name it `mechvac-task-app`, choose **Private**, and click **Create repository**.
-3. On the new page click **uploading an existing file**. Open this folder on your computer, select **everything inside it**, drag it into the page, and click **Commit changes**.
-   - The hidden folder `.github` must be uploaded too. If your computer hides it (Mac: press Cmd+Shift+. in Finder; Windows: View > Show > Hidden items), or if it does not appear in the repository afterwards, click **Add file > Create new file**, type the name `.github/workflows/build-android.yml`, paste the content of that file from this folder, and commit.
+Your website must run the latest MechVac Task version (with `app_api.php`).
 
-## Step 2: Set your website address
-1. In the repository click `app-config.properties`, then the pencil icon (Edit).
-2. Change `siteUrl=https://your-website.com` to your real address, for example `siteUrl=https://task.mechvac.com` (include a folder if the app is in one).
-3. Click **Commit changes**. The build starts by itself.
+---
 
-## Step 3: Download the app
-1. Open the **Actions** tab. Wait until "Build Android app" shows a green tick (about 5-8 minutes).
-2. Click the run, scroll to **Artifacts**, and download **MechVacTask-android** (a zip).
-3. Inside: `MechVacTask.apk` (install this on phones), `MechVacTask-PlayStore.aab` (only for the Play Store), `WEBSITE-LINK.txt`, `assetlinks.json`, and on the first build `SAVE-THIS-KEY.txt`.
+## Step 1: Set your details (2 minutes)
 
-## Step 4: Save the signing key (first build only, very important)
-Open `SAVE-THIS-KEY.txt` and follow it: in the repository go to **Settings > Secrets and variables > Actions > New repository secret** and add `KEYSTORE_BASE64` and `KEYSTORE_PASSWORD`.
-Without this, every build gets a new key and phones will refuse to update the app.
+Open `gradle.properties` with Notepad and change:
 
-## Step 5: Link the app to your website (removes the address bar)
-Open `WEBSITE-LINK.txt`. In MechVac Task go to **Company settings > Android app**, paste the package name and the SHA-256 fingerprint, and save.
-(Or upload `assetlinks.json` to `https://your-site/.well-known/assetlinks.json` yourself.)
-Until this is done the app still works, but shows a small address bar at the top.
+| Setting | What to put |
+|---|---|
+| `APP_URL` | Your MechVac Task address, e.g. `https://task.yourcompany.com` (include the folder if it is in one) |
+| `APP_NAME` | Name under the icon, e.g. `MechVac Task` |
+| `APP_ID` | Keep `com.mechvac.task`. **Never change this after you share the app.** |
 
-## Step 6: Install on phones
-Send `MechVacTask.apk` to staff (WhatsApp, email, or Drive). On the phone tap it, allow **Install unknown apps** when asked, and install.
-Open the app, sign in, and tap **Turn on** for notifications.
+## Step 2: Build the APK for free on GitHub
 
-## Updating the app later
-Most changes need no new app: anything you change on the website appears in the app immediately.
-Only rebuild if you change the name, icon or address: edit `app-config.properties`, raise `versionCode` by 1, and commit. Install the new APK over the old one.
+1. Sign in at https://github.com.
+2. Click **New repository**, give it a name (e.g. `mechvac-task-android`), select **Private** (important: it contains your signing key), and click **Create**.
+3. Click **uploading an existing file**, drag in **all files and folders from this project** (including the hidden `.github` folder), then click **Commit changes**.
+   - On Windows, turn on View > Show > **Hidden items** to see `.github`.
+4. Open the **Actions** tab. A build named **Build MechVac Task APK** starts by itself (about 5–8 minutes).
+5. When it shows a green tick, open it and scroll to **Artifacts**. Download **MechVacTask-APK** (a zip containing `MechVacTask-1.0.apk`).
 
-## Play Store (optional)
-Upload `MechVacTask-PlayStore.aab` in Google Play Console (one-time USD 25 developer fee). Play will show you a second fingerprint (App signing key); add it in Company settings too, one per line.
+Every time you change a file and commit, GitHub builds a new APK.
 
-## iPhone
-Apple does not allow installing apps outside the App Store, and building for it needs a paid Apple developer account.
-iPhone users can open the website in Safari, tap **Share > Add to Home Screen**, and open it from the icon. It looks and behaves like an app and gets notifications (iOS 16.4 or newer).
+## Step 3: Share with staff
+
+- Send the APK on WhatsApp or email.
+- On the phone: tap the file → allow **Install unknown apps** when asked → **Install**. If Play Protect warns, tap **More details → Install anyway**.
+- Open the app and sign in. The app asks, one by one:
+  - Notifications → **Allow**
+  - Battery → **Allow** (so the phone does not stop notifications)
+  - Autostart (Xiaomi, Oppo, Vivo, Realme, Samsung…) → switch **on** for this app
+- Check: **My profile → Notifications on this device** should say "On". Tap **Send a test notification**.
+
+### Phones that stop apps in the background
+- **Xiaomi / Redmi / POCO:** Settings → Apps → the app → Autostart **on**, Battery saver **No restrictions**
+- **Oppo / Realme / Vivo / iQOO:** Settings → Battery → the app → Allow background activity / **Don’t optimise**
+- **Samsung:** Settings → Battery → Background usage limits → add the app to **Never sleeping apps**
+- **OnePlus:** Settings → Battery → Battery optimisation → the app → **Don’t optimise**
+
+## Updating the app
+Changes to the website appear in the app immediately, with no new APK needed.
+Only for a new name, icon or address: edit `gradle.properties`, raise `VERSION_CODE` by 1 (and `VERSION_NAME`), commit, and share the new APK. It installs over the old one.
+
+## Keep these safe
+`mechvac-task-release.jks` and `keystore.properties` are the app's signing key. Keep the repository **private** and keep a backup copy. Without them, phones cannot update the app.
