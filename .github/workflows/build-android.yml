@@ -1,0 +1,82 @@
+name: Build Android app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths: ['app-config.properties', 'app/**', '.github/workflows/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Prepare signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD_SECRET: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          mkdir -p out
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Using the saved signing key from repository secrets."
+            echo "$KEYSTORE_BASE64" | base64 -d > app/release.keystore
+            PASS="$KEYSTORE_PASSWORD_SECRET"
+          else
+            echo "::warning::No saved signing key yet. Creating a new one. Save it as repository secrets (see SAVE-THIS-KEY.txt in the download) so app updates keep working."
+            PASS="mv-$(openssl rand -hex 12)"
+            keytool -genkeypair -keystore app/release.keystore -storetype PKCS12 -alias mechvac \
+              -keyalg RSA -keysize 2048 -validity 12000 -storepass "$PASS" -keypass "$PASS" \
+              -dname "CN=MechVac Task, O=MechVac Technologies, C=IN"
+            base64 -w0 app/release.keystore > out/KEYSTORE_BASE64.txt
+            {
+              echo "IMPORTANT: keep this safe. Without it you cannot publish updates to installed apps."
+              echo
+              echo "In GitHub open: Settings > Secrets and variables > Actions > New repository secret"
+              echo "Create these two secrets:"
+              echo "  Name: KEYSTORE_BASE64    Value: the whole content of KEYSTORE_BASE64.txt"
+              echo "  Name: KEYSTORE_PASSWORD  Value: $PASS"
+            } > out/SAVE-THIS-KEY.txt
+          fi
+          echo "KEYSTORE_FILE=$GITHUB_WORKSPACE/app/release.keystore" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=$PASS" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=$PASS" >> $GITHUB_ENV
+          echo "KEY_ALIAS=mechvac" >> $GITHUB_ENV
+
+      - name: Build app (APK for phones, AAB for Play Store)
+        run: gradle --no-daemon assembleRelease bundleRelease
+
+      - name: Collect files and website link file
+        run: |
+          PKG=$(grep -E '^packageId=' app-config.properties | cut -d= -f2 | tr -d '[:space:]')
+          FP=$(keytool -list -v -keystore app/release.keystore -storepass "$KEYSTORE_PASSWORD" -alias mechvac | grep -E 'SHA256:' | head -1 | sed 's/.*SHA256: *//' | tr -d '[:space:]')
+          cp app/build/outputs/apk/release/app-release.apk out/MechVacTask.apk
+          cp app/build/outputs/bundle/release/app-release.aab out/MechVacTask-PlayStore.aab
+          cat > out/assetlinks.json <<JSON
+          [{
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": { "namespace": "android_app", "package_name": "$PKG", "sha256_cert_fingerprints": ["$FP"] }
+          }]
+          JSON
+          {
+            echo "Package name: $PKG"
+            echo "SHA-256 fingerprint: $FP"
+            echo
+            echo "Paste both into MechVac Task > Company settings > Android app, then press Save."
+            echo "This removes the address bar at the top of the app."
+          } > out/WEBSITE-LINK.txt
+          cat out/WEBSITE-LINK.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MechVacTask-android
+          path: out/
