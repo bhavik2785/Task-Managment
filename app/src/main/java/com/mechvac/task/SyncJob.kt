@@ -7,14 +7,14 @@ import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
 
-/** Backup check about every 15 minutes, and restarts the live connection if the phone stopped it. */
+/** Silent backup check about every 15 minutes (no notification unless there is something new). */
 class SyncJob : JobService() {
     override fun onStartJob(params: JobParameters): Boolean {
         val app = applicationContext
         Thread {
             try {
-                if (!LiveService.running) LiveService.start(app)   // allowed when battery optimisation is off
-                Feed.run(app)
+                Feed.run(app)   // also starts/stops the optional always-on check and refreshes the Firebase token
+                if (Prefs(app).keepAlive && !LiveService.running) LiveService.start(app)
             } finally {
                 jobFinished(params, false)
             }

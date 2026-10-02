@@ -200,8 +200,10 @@ class MainActivity : Activity() {
         super.onResume()
         visible = true
         if (Prefs(this).token != null) {
-            LiveService.start(this)   // the app is in front, so Android always allows this
             SyncJob.schedule(this)
+            LiveService.start(this)   // only if the admin switched on the always-on check
+            val app = applicationContext
+            Thread { Feed.run(app) }.start()   // fresh settings, Firebase token, and anything missed
         }
         if (settingsPending) {
             settingsPending = false
@@ -223,7 +225,8 @@ class MainActivity : Activity() {
     // ---------- called when the website links this phone to the signed-in person ----------
     fun onLinked() {
         SyncJob.schedule(this)
-        LiveService.start(this)
+        val app = applicationContext
+        Thread { Feed.run(app) }.start()   // gets the Firebase settings and registers this phone for instant alerts
         askPermissions(force = false)
     }
 

@@ -46,8 +46,20 @@ object Notify {
         return PendingIntent.getActivity(ctx, requestCode, open, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
-    /** One alert from the website: tag "n123" (notification) or "m45" (chat message). */
+    /** Remembers an alert as seen. Returns false if it was already shown before. */
+    @Synchronized
+    fun markShown(ctx: Context, tag: String): Boolean {
+        if (tag.isEmpty()) return true
+        val p = Prefs(ctx)
+        val list = p.shownTags.split(',').filter { it.isNotEmpty() }
+        if (tag in list) return false
+        p.shownTags = (list + tag).takeLast(300).joinToString(",")
+        return true
+    }
+
+    /** One alert from the website: tag "n123" (notification) or "m45" (chat message). Shown only once. */
     fun item(ctx: Context, tag: String, kind: String, title: String, body: String, url: String) {
+        if (!markShown(ctx, tag)) return
         if (!Perms.hasNotifications(ctx)) return
         channels(ctx)
         val num = tag.drop(1).toIntOrNull() ?: tag.hashCode()
@@ -81,7 +93,7 @@ object Notify {
             .setSmallIcon(R.drawable.ic_stat_notify)
             .setColor(BRAND)
             .setContentTitle(ctx.getString(R.string.app_name))
-            .setContentText("Live: you will be notified about new tasks and messages")
+            .setContentText("Always-on check for new tasks and messages")
             .setOngoing(true)
             .setContentIntent(openApp(ctx, 1, null))
             .build()

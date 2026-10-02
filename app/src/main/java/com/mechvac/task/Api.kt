@@ -9,7 +9,7 @@ import java.net.URL
 object Api {
     class Result(val code: Int, val json: JSONObject?)
 
-    fun call(ctx: Context, action: String, tokenOverride: String? = null): Result {
+    fun call(ctx: Context, action: String, tokenOverride: String? = null, form: Map<String, String>? = null): Result {
         val prefs = Prefs(ctx)
         val token = tokenOverride ?: prefs.token ?: return Result(401, null)
         val base = prefs.baseUrl
@@ -26,6 +26,13 @@ object Api {
             // Free hosts (e.g. InfinityFree) only answer requests that carry the security cookie the in-app browser received
             val cookies = try { android.webkit.CookieManager.getInstance().getCookie(base) } catch (e: Throwable) { null }
             if (!cookies.isNullOrEmpty()) conn.setRequestProperty("Cookie", cookies)
+            if (form != null) {
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=utf-8")
+                val body = form.entries.joinToString("&") { java.net.URLEncoder.encode(it.key, "UTF-8") + "=" + java.net.URLEncoder.encode(it.value, "UTF-8") }
+                conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            }
             val code = conn.responseCode
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val text = stream?.bufferedReader()?.use { it.readText() } ?: ""

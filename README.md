@@ -2,10 +2,9 @@
 
 This app opens your MechVac Task website inside a proper Android app and adds what a website cannot do on free hosting:
 
-- **Notifications even when the app is closed**: new tasks, approvals, comments, deadline reminders, announcements and chat.
-- **Almost instant**: the app checks every 30 seconds to 3 minutes (Company settings > Live update speed). A small silent icon stays in the status bar so Android does not stop it. You can hide that icon's category in the phone's notification settings.
-- **Backup check every 15 minutes**, and it starts again by itself after the phone restarts.
-- Works on free hosting (e.g. InfinityFree), because the phone asks the server. The server never needs to send anything out.
+- **Instant notifications, even when the app is closed**: new tasks, approvals, comments, deadline reminders, announcements and chat arrive within seconds through Firebase (free, by Google), the same way WhatsApp and Gmail deliver theirs. **No permanent notification** stays on the phone.
+- **Silent backup check every 15 minutes**, so nothing is missed. It starts again by itself after the phone restarts.
+- Without Firebase the app still works: it checks every 15 minutes. If your hosting cannot reach Google, the super admin can switch on an always-on check in Company settings (that one shows a small permanent notification, which Android requires).
 - Photos and files can be attached, and downloads are saved to the phone's Downloads folder.
 
 Your website must run the latest MechVac Task version (with `app_api.php`).
@@ -22,7 +21,21 @@ Open `gradle.properties` with Notepad and change:
 | `APP_NAME` | Name under the icon, e.g. `MechVac Task` |
 | `APP_ID` | Keep `com.mechvac.task`. **Never change this after you share the app.** |
 
-## Step 2: Build the APK for free on GitHub
+## Step 2: Set up instant notifications with Firebase (one time, about 10 minutes, free)
+
+1. Open https://console.firebase.google.com and sign in with a Google account.
+2. Click **Create a project** (or **Add project**), name it e.g. `MechVac Task`, turn **off** Google Analytics, and click **Create project**.
+3. On the project page click the **Android** icon (**Add app**).
+   - **Android package name:** `com.mechvac.task` (the same as `APP_ID` in `gradle.properties`).
+   - Click **Register app**, then **Download google-services.json**. Skip the remaining steps (click Next / Continue to console).
+   - You do **not** put this file into the app. It goes to your website instead (step 5).
+4. Click the **gear icon > Project settings > Service accounts**, then **Generate new private key > Generate key**. A second `.json` file downloads. Keep it private: it lets your server send notifications.
+5. Sign in to MechVac Task as super admin, open **Company settings > Phone app: instant notifications**, choose both files, and click **Save**. It should say **Ready**.
+6. After installing the app on your phone and signing in, click **Send test to my phone** there.
+
+If it says the server **could not reach Google**, your hosting blocks outgoing connections. Then either move to hosting that allows them, or tick **Always-on check without Firebase** (phones then show a small permanent notification).
+
+## Step 3: Build the APK for free on GitHub
 
 1. Sign in at https://github.com.
 2. Click **New repository**, give it a name (e.g. `mechvac-task-android`), select **Private** (important: it contains your signing key), and click **Create**.
@@ -33,7 +46,7 @@ Open `gradle.properties` with Notepad and change:
 
 Every time you change a file and commit, GitHub builds a new APK.
 
-## Step 3: Share with staff
+## Step 4: Share with staff
 
 - Send the APK on WhatsApp or email.
 - On the phone: tap the file → allow **Install unknown apps** when asked → **Install**. If Play Protect warns, tap **More details → Install anyway**.
@@ -41,7 +54,7 @@ Every time you change a file and commit, GitHub builds a new APK.
   - Notifications → **Allow**
   - Battery → **Allow** (so the phone does not stop notifications)
   - Autostart (Xiaomi, Oppo, Vivo, Realme, Samsung…) → switch **on** for this app
-- Check: **My profile → Notifications on this device** should say "On". Tap **Send a test notification**.
+- Check: **My profile → Notifications on this device** should say **"On, instant"**. Tap **Send a test notification**.
 
 ### Phones that stop apps in the background
 - **Xiaomi / Redmi / POCO:** Settings → Apps → the app → Autostart **on**, Battery saver **No restrictions**

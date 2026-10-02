@@ -18,12 +18,18 @@ object Feed {
         prefs.lastSync = System.currentTimeMillis()
         val poll = j.optInt("poll", 60).coerceIn(20, 900)
         prefs.pollSeconds = poll
+        // instant notifications through Firebase, when the admin has set it up
+        Fcm.configure(ctx, j.optJSONObject("fcm"))
+        // optional always-on check (only if the admin switched it on; it shows a permanent notification)
+        val keep = j.optBoolean("keepalive", false)
+        if (keep != prefs.keepAlive) prefs.keepAlive = keep
+        if (keep && !LiveService.running) LiveService.start(ctx) else if (!keep && LiveService.running) LiveService.stop(ctx)
         val items = j.optJSONArray("items") ?: return poll
-        // while the app is open on screen, the page shows these itself
-        if (MainActivity.visible) return poll
         for (i in 0 until items.length()) {
             val it = items.optJSONObject(i) ?: continue
-            Notify.item(ctx, it.optString("tag"), it.optString("kind"), it.optString("title"), it.optString("body"), it.optString("url"))
+            // while the app is open on screen, the page shows these itself
+            if (MainActivity.visible) Notify.markShown(ctx, it.optString("tag"))
+            else Notify.item(ctx, it.optString("tag"), it.optString("kind"), it.optString("title"), it.optString("body"), it.optString("url"))
         }
         return poll
     }

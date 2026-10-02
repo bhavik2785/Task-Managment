@@ -7,7 +7,10 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 
-/** Keeps checking for new tasks and messages (every 30-180 seconds) so notifications arrive almost at once. */
+/**
+ * Optional always-on check (every 30-180 seconds), only when the admin switches it on in Company settings.
+ * Android requires a permanent notification for this, so normally Firebase is used instead.
+ */
 class LiveService : Service() {
     @Volatile private var stopped = false
     private var worker: Thread? = null
@@ -22,7 +25,7 @@ class LiveService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
-        if (Prefs(this).token == null) {
+        if (Prefs(this).token == null || !Prefs(this).keepAlive) {
             stopSelf()
             return START_NOT_STICKY
         }
@@ -33,7 +36,7 @@ class LiveService : Service() {
             worker = Thread {
                 while (!stopped) {
                     val wait = try { Feed.run(app) } catch (e: Exception) { 120 }
-                    if (Prefs(app).token == null) break
+                    if (Prefs(app).token == null || !Prefs(app).keepAlive) break
                     try { Thread.sleep(wait * 1000L) } catch (e: InterruptedException) { }
                 }
                 stopSelf()
@@ -54,7 +57,7 @@ class LiveService : Service() {
         @Volatile var running = false
 
         fun start(ctx: Context) {
-            if (Prefs(ctx).token == null) return
+            if (Prefs(ctx).token == null || !Prefs(ctx).keepAlive) return
             try {
                 ctx.startForegroundService(Intent(ctx, LiveService::class.java))
             } catch (e: Exception) {

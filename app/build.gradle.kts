@@ -54,3 +54,9 @@ android {
         checkReleaseBuilds = false
     }
 }
+
+dependencies {
+    // Instant notifications (Firebase Cloud Messaging). The Firebase project is set up on the website
+    // (Company settings > Phone app), so no google-services.json is needed inside the app.
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
+}

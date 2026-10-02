@@ -9,6 +9,7 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (Prefs(context).token == null) return
         SyncJob.schedule(context)
-        LiveService.start(context)
+        LiveService.start(context)   // only if the admin switched on the always-on check
+        Fcm.init(context)
     }
 }

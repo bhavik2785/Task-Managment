@@ -49,6 +49,7 @@ class Bridge(private val activity: MainActivity) {
         .put("notifications", Perms.hasNotifications(app))
         .put("battery", Perms.batteryOk(app))
         .put("live", LiveService.running)
+        .put("instant", Prefs(app).fcmSent != null)
         .put("lastSync", Prefs(app).lastSync)
         .put("serverBlocked", Prefs(app).serverBlockedAt > 0)
         .put("version", BuildConfig.VERSION_NAME)
