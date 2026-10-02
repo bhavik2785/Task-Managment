@@ -55,6 +55,13 @@ class Bridge(private val activity: MainActivity) {
         .put("version", BuildConfig.VERSION_NAME)
         .toString()
 
+    /** The open page found a new alert (works even without Firebase). Shown once, whichever way it arrives first. */
+    @JavascriptInterface
+    fun notify(tag: String, kind: String, title: String, body: String, url: String) {
+        if (Notify.onScreen(kind, url)) { Notify.markShown(app, tag); return }
+        Notify.item(app, tag, kind, title, body, url)
+    }
+
     @JavascriptInterface
     fun testNotification(): Boolean {
         if (!Perms.hasNotifications(app)) { activity.runOnUiThread { activity.askPermissions(force = true) }; return false }

@@ -57,6 +57,14 @@ object Notify {
         return true
     }
 
+    /** True when this exact chat is open on screen right now (no need to notify). */
+    fun onScreen(kind: String, url: String): Boolean {
+        if (!MainActivity.visible || kind != "chat" || url.isEmpty()) return false
+        val cur = MainActivity.currentUrl
+        val i = cur.indexOf(url)
+        return i >= 0 && (i + url.length == cur.length || !cur[i + url.length].isDigit())
+    }
+
     /** One alert from the website: tag "n123" (notification) or "m45" (chat message). Shown only once. */
     fun item(ctx: Context, tag: String, kind: String, title: String, body: String, url: String) {
         if (!markShown(ctx, tag)) return

@@ -27,9 +27,10 @@ object Feed {
         val items = j.optJSONArray("items") ?: return poll
         for (i in 0 until items.length()) {
             val it = items.optJSONObject(i) ?: continue
-            // while the app is open on screen, the page shows these itself
-            if (MainActivity.visible) Notify.markShown(ctx, it.optString("tag"))
-            else Notify.item(ctx, it.optString("tag"), it.optString("kind"), it.optString("title"), it.optString("body"), it.optString("url"))
+            val kind = it.optString("kind")
+            val url = it.optString("url")
+            if (Notify.onScreen(kind, url)) Notify.markShown(ctx, it.optString("tag"))
+            else Notify.item(ctx, it.optString("tag"), kind, it.optString("title"), it.optString("body"), url)
         }
         return poll
     }

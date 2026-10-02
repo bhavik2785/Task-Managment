@@ -12,9 +12,11 @@ class PushService : FirebaseMessagingService() {
         for (i in 0 until items.length()) {
             val it = items.optJSONObject(i) ?: continue
             val tag = it.optString("tag")
-            // while the app is open on screen, the page shows it itself
-            if (MainActivity.visible) Notify.markShown(this, tag)
-            else Notify.item(this, tag, it.optString("kind"), it.optString("title"), it.optString("body"), it.optString("url"))
+            val kind = it.optString("kind")
+            val url = it.optString("url")
+            // every alert becomes a phone notification, even with the app open, except the chat you are reading
+            if (Notify.onScreen(kind, url)) Notify.markShown(this, tag)
+            else Notify.item(this, tag, kind, it.optString("title"), it.optString("body"), url)
         }
     }
 

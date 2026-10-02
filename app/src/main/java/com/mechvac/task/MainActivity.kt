@@ -35,8 +35,10 @@ class MainActivity : Activity() {
         private const val REQ_NOTIF = 3
         private const val REQ_LAUNCH_NOTIF = 5
         private const val REQ_FILE = 9
-        /** True while the app is on screen: the page then shows alerts itself. */
+        /** True while the app is on screen. */
         @Volatile var visible = false
+        /** The page open in the app, so a chat you are already reading does not notify you. */
+        @Volatile var currentUrl = ""
     }
 
     private var web: WebView? = null
@@ -125,6 +127,10 @@ class MainActivity : Activity() {
                 if ((url.scheme == "https" || url.scheme == "http") && url.host == baseHost) return false
                 try { startActivity(Intent(Intent.ACTION_VIEW, url)) } catch (e: Exception) { }
                 return true
+            }
+
+            override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+                currentUrl = url ?: ""
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
