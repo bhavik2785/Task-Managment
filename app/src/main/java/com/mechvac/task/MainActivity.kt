@@ -15,6 +15,7 @@ import android.provider.Settings
 import android.text.InputType
 import android.view.Gravity
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.URLUtil
 import android.webkit.ValueCallback
@@ -226,6 +227,34 @@ class MainActivity : Activity() {
         super.onPause()
         visible = false
         CookieManager.getInstance().flush()
+    }
+
+    // ---------- view-only chat files: block screenshots and screen recording, and report screenshot tries ----------
+    /** Android 14 and newer tell the app when someone takes a screenshot of it. */
+    private val screenshotCallback: Any? = if (Build.VERSION.SDK_INT >= 34) Activity.ScreenCaptureCallback {
+        runOnUiThread { web?.evaluateJavascript("window.mvAppScreenshot && window.mvAppScreenshot()", null) }
+    } else null
+
+    override fun onStart() {
+        super.onStart()
+        if (Build.VERSION.SDK_INT >= 34) {
+            try { registerScreenCaptureCallback(mainExecutor, screenshotCallback as Activity.ScreenCaptureCallback) } catch (e: Exception) { }
+        }
+    }
+
+    override fun onStop() {
+        if (Build.VERSION.SDK_INT >= 34) {
+            try { unregisterScreenCaptureCallback(screenshotCallback as Activity.ScreenCaptureCallback) } catch (e: Exception) { }
+        }
+        super.onStop()
+    }
+
+    /** The page asks for this while view-only files are on screen: screenshots and recordings then come out black. */
+    fun setSecure(on: Boolean) {
+        runOnUiThread {
+            if (on) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 
     // ---------- called when the website links this phone to the signed-in person ----------

@@ -20,6 +20,14 @@ class Bridge(private val activity: MainActivity) {
     @JavascriptInterface
     fun version(): String = BuildConfig.VERSION_NAME
 
+    /** View-only chat files are on screen: block screenshots and screen recording (they come out black). */
+    @JavascriptInterface
+    fun secure(on: Boolean) = activity.setSecure(on)
+
+    /** Whether this phone can report screenshot tries (Android 14 and newer). */
+    @JavascriptInterface
+    fun detectsScreenshots(): Boolean = Build.VERSION.SDK_INT >= 34
+
     /** The website gave this phone its token after sign-in. */
     @JavascriptInterface
     fun link(token: String, uid: Int) {

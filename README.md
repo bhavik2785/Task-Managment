@@ -6,6 +6,7 @@ This app opens your MechVac Task website inside a proper Android app and adds wh
 - **Silent backup check every 15 minutes**, so nothing is missed. It starts again by itself after the phone restarts.
 - Without Firebase the app still works: it checks every 15 minutes. If your hosting cannot reach Google, the super admin can switch on an always-on check in Company settings (that one shows a small permanent notification, which Android requires).
 - Photos and files can be attached, and downloads are saved to the phone's Downloads folder.
+- **View-only chat files (version 1.3)**: while they are on screen, screenshots and screen recordings come out black, and on Android 14+ every screenshot try is reported to the super admin at once.
 
 Your website must run the latest MechVac Task version (with `app_api.php`).
 
